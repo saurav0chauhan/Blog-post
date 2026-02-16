@@ -62,6 +62,46 @@ class User(AbstractBaseUser, PermissionsMixin):
             return False
 
 
+class SuperAdminType(models.Model):
+    """SuperAdmin role/type options"""
+    
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+    permissions_level = models.IntegerField(default=1, help_text="Higher number = more permissions")
+    created_at = models.DateTimeField(default=timezone.now)
+    
+    class Meta:
+        db_table = 'superadmin_types'
+        verbose_name = 'SuperAdmin Type'
+        verbose_name_plural = 'SuperAdmin Types'
+        ordering = ['permissions_level']
+    
+    def __str__(self):
+        return self.name
+
+
+class SuperAdmin(models.Model):
+    """Separate SuperAdmin model with independent auth"""
+    
+    name = models.CharField(max_length=100)
+    email = models.EmailField(max_length=150, unique=True)
+    company = models.CharField(max_length=255, blank=True, null=True)
+    admin_type = models.ForeignKey(SuperAdminType, on_delete=models.SET_NULL, null=True, related_name='superadmins')
+    password_hash = models.CharField(max_length=255)
+    profile_image = models.ImageField(upload_to='superadmin/', blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'superadmins'
+        verbose_name = 'SuperAdmin'
+        verbose_name_plural = 'SuperAdmins'
+    
+    def __str__(self):
+        return f"SuperAdmin: {self.email}"
+
+
 class Role(models.Model):
     """User roles"""
     
@@ -210,18 +250,30 @@ class Blog(models.Model):
         ordering = ['-created_at']
     
     def save(self, *args, **kwargs):
+        # Ensure title is not empty
+        if not self.title:
+            raise ValueError('Blog title is required')
+        
+        # Generate slug from title if not provided
         if not self.slug:
             self.slug = slugify(self.title)
+        
+        # Ensure slug is not empty
+        if not self.slug:
+            self.slug = f"blog-{timezone.now().timestamp()}"
         
         # Set published_at when status changes to published
         if self.status == 'published' and not self.published_at:
             self.published_at = timezone.now()
         
+        # Clear published_at if status changes away from published
+        if self.status != 'published' and self.published_at:
+            self.published_at = None
+        
         super().save(*args, **kwargs)
     
     def __str__(self):
         return self.title
-
 
 class Comment(models.Model):
     """Blog comments"""

@@ -4,9 +4,9 @@
 
 {% block content %}
 <div class="container">
-    <div style="text-align: center; padding: 2rem 0;">
-        <h1>Welcome to Blog</h1>
-        <p>Share your thoughts and ideas with the world</p>
+    <div class="hero-section">
+        <h1>Welcome to Our Blog</h1>
+        <p>Share your thoughts, ideas, and stories with the world</p>
         {% if not user.is_authenticated %}
             <div class="button-group" style="justify-content: center;">
                 <a href="{% url 'register' %}" class="btn btn-primary">Get Started</a>
@@ -17,38 +17,135 @@
         {% endif %}
     </div>
 
-    <hr>
-
-    <h2>Latest Blogs</h2>
+    <h2 style="color: #1a4d2e; border-bottom: 3px solid #1a4d2e; padding-bottom: 0.5rem; margin-top: 2rem;">Latest Published Blogs</h2>
+    
     {% if blogs %}
         <div class="grid">
             {% for blog in blogs %}
                 <div class="blog-card">
+                    {% if blog.featured_image %}
+                        <div class="blog-card-image" style="background-image: url('{{ blog.featured_image.url }}');"></div>
+                    {% else %}
+                        <div class="blog-card-image" style="background: linear-gradient(135deg, #1a4d2e 0%, #2d7a4a 100%);"></div>
+                    {% endif %}
+                    
                     <div class="blog-card-body">
-                        <h3>{{ blog.title }}</h3>
+                        {% if blog.category %}
+                            <span class="blog-category">{{ blog.category.name }}</span>
+                        {% endif %}
+                        <h3 style="color: #1a4d2e; margin: 0.5rem 0;">{{ blog.title|truncatewords:8 }}</h3>
+                        
                         {% if blog.excerpt %}
-                            <p class="text-muted">{{ blog.excerpt|truncatewords:20 }}</p>
+                            <p class="text-muted">{{ blog.excerpt|truncatewords:15 }}</p>
+                        {% else %}
+                            <p class="text-muted">{{ blog.content|truncatewords:20 }}</p>
                         {% endif %}
                         
-                        <p class="small-text">
-                            By <strong>{{ blog.author.name }}</strong> on {{ blog.published_at|date:"M d, Y" }}
+                        <p class="blog-meta">
+                            By <strong>{{ blog.author.name }}</strong> • {{ blog.published_at|date:"M d, Y" }}
                         </p>
                         
-                        <a href="{% url 'blog_detail' blog.id %}" class="btn btn-primary btn-small">Read More →</a>
+                        {% if blog.tags.all %}
+                            <div class="blog-tags">
+                                {% for tag in blog.tags.all %}
+                                    <span class="tag">#{{ tag.name }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <a href="{% url 'blog_detail' blog.id %}" class="btn btn-primary btn-small" style="display: inline-block; margin-top: 1rem;">Read More →</a>
                     </div>
                 </div>
             {% endfor %}
         </div>
     {% else %}
-        <div class="card">
-            <h3>No Blog Posts Yet</h3>
+        <div class="card" style="text-align: center; padding: 2rem;">
+            <h3 style="color: #1a4d2e;">No Blog Posts Yet</h3>
             <p class="text-muted">Be the first to create amazing content!</p>
             {% if user.is_authenticated %}
-                <a href="{% url 'create_blog' %}" class="btn btn-primary">Write Your First Blog</a>
+                <a href="{% url 'create_blog' %}" class="btn btn-primary" style="margin-top: 1rem;">Write Your First Blog</a>
             {% else %}
-                <a href="{% url 'register' %}" class="btn btn-primary">Register to Write</a>
+                <a href="{% url 'register' %}" class="btn btn-primary" style="margin-top: 1rem;">Register to Write</a>
             {% endif %}
         </div>
     {% endif %}
 </div>
+
+<style>
+    .hero-section {
+        text-align: center;
+        padding: 3rem 1rem;
+        background: linear-gradient(135deg, #1a4d2e 0%, #2d7a4a 100%);
+        color: white;
+        border-radius: 8px;
+        margin: 2rem 0;
+        animation: slideInDown 0.8s ease-out;
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .hero-section h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .hero-section p {
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.95;
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .blog-card-image {
+        width: 100%;
+        height: 200px;
+        background-size: cover;
+        background-position: center;
+        transition: transform 0.3s;
+    }
+
+    .blog-card:hover .blog-card-image {
+        transform: scale(1.05);
+    }
+
+    .blog-card-body {
+        padding: 1.5rem;
+    }
+
+    .blog-category {
+        display: inline-block;
+        background: #e8f5e9;
+        color: #1a4d2e;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .blog-meta {
+        margin: 0.75rem 0;
+        font-size: 0.9rem;
+        color: #666;
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .blog-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin: 0.75rem 0;
+    }
+
+    .tag {
+        display: inline-block;
+        background: #f0f4f2;
+        color: #1a4d2e;
+        padding: 0.25rem 0.6rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        font-family: 'Times New Roman', Times, serif;
+    }
+</style>
 {% endblock %}

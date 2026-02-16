@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Role, Permission, UserRole, RolePermission, Category, Tag, Blog, Comment
+from .models import User, Role, Permission, UserRole, RolePermission, Category, Tag, Blog, Comment, SuperAdmin, SuperAdminType
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
@@ -78,3 +78,31 @@ class CommentAdmin(admin.ModelAdmin):
     list_filter = ('status', 'created_at')
     search_fields = ('name', 'email', 'blog__title')
     readonly_fields = ('created_at',)
+
+
+@admin.register(SuperAdminType)
+class SuperAdminTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'permissions_level', 'created_at')
+    list_filter = ('permissions_level', 'created_at')
+    search_fields = ('name', 'description')
+    readonly_fields = ('created_at',)
+    fieldsets = (
+        ('Type Info', {'fields': ('name', 'description')}),
+        ('Permissions', {'fields': ('permissions_level',)}),
+        ('Dates', {'fields': ('created_at',)}),
+    )
+
+
+@admin.register(SuperAdmin)
+class SuperAdminAdmin(admin.ModelAdmin):
+    list_display = ('email', 'name', 'admin_type', 'is_active', 'created_at')
+    list_filter = ('is_active', 'admin_type', 'created_at')
+    search_fields = ('email', 'name', 'company')
+    readonly_fields = ('created_at', 'updated_at')
+    fieldsets = (
+        ('Personal Info', {'fields': ('email', 'name', 'company')}),
+        ('Admin Details', {'fields': ('admin_type',)}),
+        ('Profile', {'fields': ('profile_image',)}),
+        ('Status', {'fields': ('is_active',)}),
+        ('Dates', {'fields': ('created_at', 'updated_at')}),
+    )

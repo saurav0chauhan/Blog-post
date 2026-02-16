@@ -4,86 +4,247 @@
 {% block title %}Dashboard - Blog{% endblock %}
 
 {% block content %}
-<div class="container-dashboard dashboard-main">
-    <div class="top-navbar">
-        <div class="brand">
-            <img src="{% static 'logo.svg' %}" alt="logo">
-            <div style="color:var(--dark-accent);font-weight:700">Blog Website</div>
-        </div>
-        <div class="menu">
-            <a href="{% url 'home' %}">Home</a>
-            <a href="{% url 'home' %}">Blogs</a>
-            <a href="{% url 'dashboard' %}">Dashboard</a>
-            <a href="{% url 'dashboard' %}">Profile</a>
-            <a href="{% url 'logout' %}">Logout</a>
+<div class="container" style="max-width:1000px;margin:2rem auto;">
+    <div class="welcome-card-dashboard">
+        <h1>Welcome, {{ user.name }}</h1>
+        <p>Manage your posts and grow your audience</p>
+        <div style="display:flex;gap:12px;margin-top:1rem;">
+            <a href="{% url 'create_blog' %}" class="btn-dashboard-primary">+ Create Post</a>
+            <a href="{% url 'home' %}" class="btn-dashboard-secondary">Back to Home</a>
         </div>
     </div>
 
-    <div class="spacious">
-        <div class="welcome-card">
-            <div>
-                <h1>Welcome, {{ user.name }}</h1>
-                <p>Manage your posts, explore categories, and grow your audience.</p>
-            </div>
-            <div class="actions">
-                <a href="{% url 'create_blog' %}" class="btn-gold">Create Post</a>
-                <a href="{% url 'dashboard' %}" class="btn-dark">Manage Posts</a>
-            </div>
-        </div>
-
-        <h3 class="section-title">Explore Categories</h3>
-        <div class="categories-row">
-            {% for cat in categories %}
-                <div class="category-card">
-                    <div class="category-icon">📚</div>
-                    <div style="flex:1">
-                        <div class="category-name">{{ cat.name }}</div>
+    <h2 style="margin-top:2rem;color:#1a4d2e;border-bottom:3px solid #1a4d2e;padding-bottom:0.5rem;">Your Blog Posts</h2>
+    
+    <div class="posts-grid">
+        {% if user_blogs %}
+            {% for blog in user_blogs %}
+                <div class="post-card-dashboard">
+                    {% if blog.featured_image %}
+                        <div class="post-image" style="background-image:url('{{ blog.featured_image.url }}');"></div>
+                    {% else %}
+                        <div class="post-image" style="background:linear-gradient(135deg, #1a4d2e 0%, #2d7a4a 100%);"></div>
+                    {% endif %}
+                    <div class="post-body">
+                        <h3>{{ blog.title|truncatewords:8 }}</h3>
+                        <p class="post-meta"><strong>{{ blog.status|upper }}</strong> • {{ blog.created_at|date:"M d, Y" }}</p>
+                        <p class="post-excerpt">{{ blog.excerpt|default:blog.content|truncatewords:15 }}</p>
+                        <div class="post-actions" style="display:flex;gap:8px;margin-top:1rem;">
+                            <a href="{% url 'blog_detail' blog.id %}" class="btn-post-view">View</a>
+                            <a href="{% url 'edit_blog' blog.id %}" class="btn-post-edit">Edit</a>
+                            <form method="POST" action="{% url 'delete_blog' blog.id %}" style="display:inline;" onsubmit="return confirm('Delete this post?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-post-delete">Delete</button>
+                            </form>
+                        </div>
                     </div>
-                    <div class="badge">{{ cat.post_count }}</div>
                 </div>
             {% endfor %}
-        </div>
-
-        <h3 class="section-title">Quick Actions</h3>
-        <div class="quick-actions">
-            <a href="{% url 'create_blog' %}" class="btn-gold">Create Post</a>
-            <a href="{% url 'dashboard' %}" class="btn-dark">Manage Posts</a>
-        </div>
-
-        <h3 class="section-title">Your Blog Posts</h3>
-        <div class="card">
-            {% if user_blogs %}
-                <table class="posts-table" style="width:100%;border-collapse:collapse;">
-                    <thead>
-                        <tr>
-                            <th style="text-align:left;padding:12px;">Title</th>
-                            <th style="text-align:left;padding:12px;">Status</th>
-                            <th style="text-align:left;padding:12px;">Created</th>
-                            <th style="text-align:left;padding:12px;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for blog in user_blogs %}
-                            <tr style="border-top:1px solid rgba(0,0,0,0.06);">
-                                <td style="padding:12px;color:#000;"><strong>{{ blog.title|truncatewords:12 }}</strong></td>
-                                <td style="padding:12px;color:#000;">{{ blog.status|capfirst }}</td>
-                                <td style="padding:12px;color:#000;">{{ blog.created_at|date:"M d, Y" }}</td>
-                                <td style="padding:12px;">
-                                    <a href="{% url 'blog_detail' blog.id %}" class="btn btn-small" style="background:transparent;color:var(--dark-accent);border:1px solid rgba(0,0,0,0.06);">View</a>
-                                    <a href="{% url 'edit_blog' blog.id %}" class="btn btn-small" style="background:transparent;color:var(--dark-accent);border:1px solid rgba(0,0,0,0.06);">Edit</a>
-                                    <form method="POST" action="{% url 'delete_blog' blog.id %}" style="display:inline;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-small" style="background:#ffefef;color:#b00000;border-radius:6px;border:1px solid rgba(0,0,0,0.06);padding:6px 8px;margin-left:8px;">Delete</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <p style="color:#000;">You haven't created any blog posts yet.</p>
-            {% endif %}
-        </div>
+        {% else %}
+            <div style="padding:2rem;text-align:center;color:#666;">
+                <p>You haven't created any blog posts yet.</p>
+                <a href="{% url 'create_blog' %}" class="btn-dashboard-primary" style="margin-top:1rem;">Create Your First Post</a>
+            </div>
+        {% endif %}
     </div>
 </div>
+
+<style>
+    .welcome-card-dashboard {
+        background: linear-gradient(135deg, #1a4d2e 0%, #2d7a4a 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(26, 77, 46, 0.15);
+        animation: slideInDown 0.6s ease-out;
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .welcome-card-dashboard h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .welcome-card-dashboard p {
+        margin: 0.5rem 0 0 0;
+        opacity: 0.95;
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .btn-dashboard-primary {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        background: white;
+        color: #1a4d2e;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .btn-dashboard-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-dashboard-secondary {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        background: transparent;
+        color: white;
+        border: 2px solid white;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s;
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .btn-dashboard-secondary:hover {
+        background: white;
+        color: #1a4d2e;
+        transform: translateY(-2px);
+    }
+
+    .posts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .post-card-dashboard {
+        background: linear-gradient(135deg, #ffffff 0%, #f8faf8 100%);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(26, 77, 46, 0.08);
+        border: 1px solid #e8ede8;
+        animation: fadeInUp 0.6s ease-out;
+        transition: all 0.3s;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .post-card-dashboard:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(26, 77, 46, 0.12);
+    }
+
+    .post-image {
+        height: 200px;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    .post-body {
+        padding: 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .post-body h3 {
+        margin: 0 0 0.5rem 0;
+        color: #1a4d2e;
+        font-size: 1.3rem;
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .post-meta {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        margin-bottom: 0.75rem;
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .post-excerpt {
+        color: #555;
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+        flex-grow: 1;
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .post-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-post-view,
+    .btn-post-edit,
+    .btn-post-delete {
+        flex: 1;
+        padding: 0.6rem 1rem;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.3s;
+        text-decoration: none;
+        text-align: center;
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .btn-post-view {
+        background: #1a4d2e;
+        color: white;
+    }
+
+    .btn-post-view:hover {
+        background: #2d7a4a;
+        transform: translateY(-1px);
+    }
+
+    .btn-post-edit {
+        background: #3498db;
+        color: white;
+    }
+
+    .btn-post-edit:hover {
+        background: #2980b9;
+        transform: translateY(-1px);
+    }
+
+    .btn-post-delete {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .btn-post-delete:hover {
+        background: #c0392b;
+        transform: translateY(-1px);
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+       
 {% endblock %}
+

@@ -3,76 +3,105 @@
 {% block title %}{{ blog.title }} - Blog{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="nav-back">
-        <a href="{% url 'home' %}">Back to Home</a>
-    </div>
+<div class="container" style="max-width:900px;">
+    <a href="{% url 'home' %}" class="nav-back">← Back to Home</a>
 
-    <article style="max-width: 800px; margin: 2rem auto;">
-        <h1 style="margin: 1rem 0;">{{ blog.title }}</h1>
-        
-        <div style="color: #999; font-size: 0.9rem; margin-bottom: 2rem;">
-            <p>By <strong>{{ blog.author.name }}</strong> on {{ blog.published_at|date:"F d, Y" }}</p>
+    <article style="margin: 2rem 0;">
+        <div style="animation: slideInDown 0.8s ease-out;">
+            <h1 style="color: #1a4d2e; margin: 1.5rem 0 0.5rem 0; font-size: 2.2rem; font-family: 'Times New Roman', Times, serif;">{{ blog.title }}</h1>
+            
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; color: #666; font-size: 0.95rem; font-family: 'Times New Roman', Times, serif;">
+                {% if blog.author.profile_image %}
+                    <img src="{{ blog.author.profile_image.url }}" alt="author" style="height:40px; width:40px; border-radius:50%; object-fit:cover;">
+                {% else %}
+                    <div style="height:40px; width:40px; border-radius:50%; background:#e8f5e9; display:flex; align-items:center; justify-content:center; color:#1a4d2e; font-weight:bold;">{{ blog.author.name|slice:":1" }}</div>
+                {% endif %}
+                <div>
+                    <strong style="font-family: 'Times New Roman', Times, serif;">{{ blog.author.name }}</strong><br>
+                    <small style="font-family: 'Times New Roman', Times, serif;">Published {{ blog.published_at|date:"F d, Y" }}</small>
+                </div>
+            </div>
         </div>
 
+        <!-- Featured Image -->
+        {% if blog.featured_image %}
+            <div style="margin: 2rem 0; text-align: center; animation: fadeInUp 0.8s ease-out;">
+                <img src="{{ blog.featured_image.url }}" alt="{{ blog.title }}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 8px 24px rgba(26, 77, 46, 0.15);">
+            </div>
+        {% endif %}
+
         <!-- Tags and Likes -->
-        <div style="margin-bottom:1rem; display:flex; gap:12px; align-items:center;">
+        <div style="margin: 1.5rem 0; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
             <div>
                 {% if blog.category %}
-                    <span class="badge bg-info me-2">{{ blog.category.name }}</span>
+                    <span style="display: inline-block; background: #e8f5e9; color: #1a4d2e; padding: 0.4rem 1rem; border-radius: 20px; font-weight: 600; font-size: 0.85rem; margin-right: 0.5rem;">{{ blog.category.name }}</span>
                 {% endif %}
                 {% for t in blog.tags.all %}
-                    <span class="badge bg-secondary">{{ t.name }}</span>
-                {% empty %}
+                    <span style="display: inline-block; background: #f0f4f2; color: #1a4d2e; padding: 0.25rem 0.7rem; border-radius: 4px; font-weight: 500; font-size: 0.8rem; margin-right: 0.5rem;">#{{ t.name }}</span>
                 {% endfor %}
             </div>
 
-            <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
-                <form method="POST" action="{% url 'toggle_like' blog.id %}">
+            <div style="margin-left: auto; display: flex; gap: 12px; align-items: center;">
+                <form method="POST" action="{% url 'toggle_like' blog.id %}" style="display: inline;">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-sm" style="background:transparent;border:1px solid rgba(0,0,0,0.06);">{% if user_liked %}♥{% else %}♡{% endif %} Like</button>
+                    <button type="submit" class="btn-like" style="background: {% if user_liked %}#e74c3c{% else %}#f0f4f2{% endif %}; color: {% if user_liked %}white{% else %}#1a4d2e{% endif %}; padding: 0.5rem 1rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.3s;">{% if user_liked %}♥{% else %}♡{% endif %} Like</button>
                 </form>
-                <div style="color:#666;">Likes: {{ likes_count }}</div>
+                <div style="color: #666; font-weight: 600;">{{ likes_count }} Likes</div>
             </div>
         </div>
 
         {% if user == blog.author %}
-            <div class="button-group" style="margin-bottom: 2rem;">
-                <a href="{% url 'edit_blog' blog.id %}" class="btn btn-primary btn-small">Edit</a>
-                <a href="{% url 'delete_blog' blog.id %}" class="btn btn-danger btn-small" onclick="return confirm('Delete this blog?');">Delete</a>
+            <div style="display: flex; gap: 8px; margin: 1.5rem 0;">
+                <a href="{% url 'edit_blog' blog.id %}" class="btn btn-primary" style="padding: 0.6rem 1.2rem;">Edit Post</a>
+                <a href="{% url 'delete_blog' blog.id %}" class="btn btn-danger" style="padding: 0.6rem 1.2rem;" onclick="return confirm('Delete this blog?');">Delete</a>
             </div>
         {% endif %}
 
-        <div style="line-height: 1.8; font-size: 1.1rem; margin: 2rem 0;">
+        <!-- Blog Content -->
+        <div class="blog-content" style="line-height: 1.9; font-size: 1.05rem; color: #333; margin: 2.5rem 0; font-family: 'Times New Roman', Times, serif;">
             {{ blog.content|linebreaks }}
         </div>
 
-        <hr style="margin: 2rem 0;">
+        <hr style="border: none; border-top: 1px solid #d4e5d8; margin: 2.5rem 0;">
 
         <!-- Comments Section -->
-        <section style="margin: 3rem 0;">
-            <h2>Comments ({{ comments.count }})</h2>
+        <section style="margin: 2.5rem 0; font-family: 'Times New Roman', Times, serif;">
+            <h2 style="color: #1a4d2e; border-bottom:3px solid #1a4d2e; padding-bottom: 0.5rem; margin-bottom: 1.5rem; font-family: 'Times New Roman', Times, serif;">Comments ({{ comments.count }})</h2>
 
             {% if comments %}
-                <div style="margin: 2rem 0;">
+                <div style="margin: 1.5rem 0;">
                     {% for comment in comments %}
-                        <div class="card" style="margin-bottom: 1rem;">
-                            <h3 style="margin: 0.5rem 0; font-size: 1.1rem;">{{ comment.name }}</h3>
-                            <p class="small-text" style="margin-bottom: 1rem;">{{ comment.created_at|date:"M d, Y \a\t H:i" }}</p>
-                            <p>{{ comment.comment }}</p>
+                        <div class="card" style="margin-bottom: 1rem; animation: fadeInUp 0.6s ease-out;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <div style="height: 32px; width: 32px; border-radius: 50%; background: #e8f5e9; display: flex; align-items: center; justify-content: center; color: #1a4d2e; font-weight: bold; font-size: 0.9rem;">{{ comment.name|slice:":1" }}</div>
+                                    <div>
+                                        <h4 style="margin: 0; color: #1a4d2e;">{{ comment.name }}</h4>
+                                        <small style="color: #999;">{{ comment.created_at|date:"M d, Y \a\t H:i" }}</small>
+                                    </div>
+                                </div>
+                                {% if user.is_authenticated and user == comment.user or user == blog.author %}
+                                    <form method="POST" action="{% url 'delete_comment' comment.id %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this comment?');">
+                                        {% csrf_token %}
+                                        <button type="submit" style="background: #e74c3c; color: white; border: none; padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.85rem; transition: all 0.3s;">Delete</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                            <p style="margin: 0.75rem 0; color: #555;">{{ comment.comment }}</p>
                         </div>
                     {% endfor %}
                 </div>
             {% else %}
-                <p class="text-muted">No comments yet. Be the first to comment!</p>
+                <p style="color: #999; font-style: italic;">No comments yet. Be the first to share your thoughts!</p>
             {% endif %}
 
-            <div class="card" style="margin-top: 2rem;">
-                <h3 style="margin-top: 0;">Leave a Comment</h3>
+            <!-- Comment Form -->
+            <div class="card" style="margin-top: 2rem; animation: fadeInUp 0.8s ease-out;">
+                <h3 style="color: #1a4d2e; margin-top: 0;">Leave a Comment</h3>
                 
                 {% if not user.is_authenticated %}
-                    <div class="nav-back">
-                        Please <a href="{% url 'login' %}">login</a> or <a href="{% url 'register' %}">register</a> to comment.
+                    <div style="background: #e8f5e9; padding: 1rem; border-radius: 6px; color: #1a4d2e;">
+                        Please <a href="{% url 'login' %}" style="color: #1a4d2e; font-weight: 600;">login</a> or <a href="{% url 'register' %}" style="color: #1a4d2e; font-weight: 600;">register</a> to comment.
                     </div>
                 {% endif %}
 
@@ -80,197 +109,65 @@
                     {% csrf_token %}
                     
                     <div class="form-group">
-                        <label for="name">Your Name</label>
-                        <input type="text" id="name" name="name" placeholder="Enter your name" required>
+                        <label for="name" style="font-family: 'Times New Roman', Times, serif;">Your Name</label>
+                        <input type="text" id="name" name="name" placeholder="Enter your name" required style="font-family: 'Times New Roman', Times, serif;">
                     </div>
 
                     <div class="form-group">
-                        <label for="email">Your Email</label>
-                        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                        <label for="email" style="font-family: 'Times New Roman', Times, serif;">Your Email</label>
+                        <input type="email" id="email" name="email" placeholder="Enter your email" required style="font-family: 'Times New Roman', Times, serif;">
                     </div>
 
                     <div class="form-group">
-                        <label for="comment">Comment</label>
-                        <textarea id="comment" name="comment" rows="4" placeholder="Write your comment here..." required></textarea>
-                        <small style="color: #999;">Comments will be approved before appearing.</small>
+                        <label for="comment" style="font-family: 'Times New Roman', Times, serif;">Comment</label>
+                        <textarea id="comment" name="comment" rows="4" placeholder="Write your comment here..." required style="font-family: 'Times New Roman', Times, serif;"></textarea>
+                        <small style="color: #999; font-family: 'Times New Roman', Times, serif;">Comments will be approved before appearing.</small>
                     </div>
 
-                    <button type="submit" class="btn btn-primary">Post Comment</button>
+                    <button type="submit" class="btn btn-primary" style="font-family: 'Times New Roman', Times, serif;">Post Comment</button>
                 </form>
             </div>
         </section>
     </article>
 </div>
-{% endblock %}
 
-                    <!-- Category and Tags -->
-                    <div>
-                        {% if blog.category %}
-                            <span class="badge bg-info me-2">{{ blog.category.name }}</span>
-                        {% endif %}
-                        <span class="badge bg-secondary">{{ blog.get_status_display }}</span>
-                    </div>
-                </header>
+<style>
+    .blog-content img {
+        display: block;
+        margin: 1.5rem auto;
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(26, 77, 46, 0.15);
+    }
 
-                <!-- Featured Image -->
-                {% if blog.featured_image %}
-                    <div class="mb-4">
-                                <img src="{{ blog.featured_image.url }}" alt="{{ blog.title }}" class="img-fluid rounded" style="max-width: 100%;">
-                                <!-- Image comments -->
-                                <div style="margin-top:12px;">
-                                    <h4>Image Comments ({{ image_comments.count }})</h4>
-                                    {% if image_comments %}
-                                        {% for ic in image_comments %}
-                                            <div class="card" style="margin-bottom:8px;">
-                                                <div class="card-body">
-                                                    <strong>{{ ic.name }}</strong>
-                                                    <small class="text-muted d-block">{{ ic.created_at|date:"M d, Y \a\t H:i" }}</small>
-                                                    <p>{{ ic.comment }}</p>
-                                                    {% if ic.image %}
-                                                        <div style="margin-top:8px;">
-                                                            <img src="{{ ic.image.url }}" alt="comment image" style="max-width:100%;border-radius:6px;">
-                                                        </div>
-                                                    {% endif %}
-                                                </div>
-                                            </div>
-                                        {% endfor %}
-                                    {% else %}
-                                        <p class="text-muted">No comments on the image yet.</p>
-                                    {% endif %}
+    .btn-like:hover {
+        transform: scale(1.05);
+    }
 
-                                    {% if user.is_authenticated %}
-                                        <form method="POST" action="{% url 'add_comment' blog.id %}" style="margin-top:8px;" enctype="multipart/form-data">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="is_image" value="1">
-                                            <div class="form-group">
-                                                <label for="comment_image">Comment on image</label>
-                                                <textarea id="comment_image" name="comment" rows="3" class="form-control" required></textarea>
-                                                <div style="margin-top:8px;">
-                                                    <label for="image">Attach image (optional)</label>
-                                                    <input type="file" id="image" name="image" accept="image/*">
-                                                </div>
-                                            </div>
-                                            <button type="submit" class="btn btn-dark" style="margin-top:8px;">Post Comment</button>
-                                        </form>
-                                    {% else %}
-                                        <div class="nav-back" style="margin-top:8px;">Please <a href="{% url 'login' %}">login</a> to comment on the image.</div>
-                                    {% endif %}
-                                </div>
-                    </div>
-                {% endif %}
+    @keyframes slideInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 
-                <!-- Excerpt -->
-                {% if blog.excerpt %}
-                    <div class="alert alert-light border mb-4">
-                        <p class="mb-0"><em>{{ blog.excerpt }}</em></p>
-                    </div>
-                {% endif %}
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
 
-                <!-- Content -->
-                <div class="blog-content">
-                    {{ blog.content|linebreaks }}
-                </div>
-
-                <hr class="my-4">
-
-                <!-- Author Bio -->
-                <div class="card bg-light mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title">About the Author</h5>
-                        <p class="card-text">
-                            <strong>{{ blog.author.name }}</strong><br>
-                            <small class="text-muted">{{ blog.author.email }}</small>
-                        </p>
-                    </div>
-                </div>
-            </article>
-
-            <!-- Comments Section -->
-            <section class="mb-5">
-                <h3 class="mb-4">Comments ({{ comments.count }})</h3>
-
-                {% if comments %}
-                    <div class="comments-list mb-4">
-                        {% for comment in comments %}
-                            <div class="card mb-3">
-                                <div class="card-body">
-                                    <h6 class="card-title">{{ comment.name }}</h6>
-                                    <small class="text-muted d-block mb-2">{{ comment.created_at|date:"M d, Y \a\t H:i" }}</small>
-                                    <p class="card-text">{{ comment.comment }}</p>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <p class="text-muted">No approved comments yet. Be the first to comment!</p>
-                {% endif %}
-
-                <!-- Add Comment Form -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Leave a Comment</h5>
-                    </div>
-                    <div class="card-body">
-                        <form method="POST" action="{% url 'add_comment' blog.id %}" novalidate>
-                            {% csrf_token %}
-                            
-                            <div class="mb-3">
-                                <label for="name" class="form-label">Your Name</label>
-                                <input type="text" class="form-control" id="name" name="name" placeholder="Enter your name" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Your Email</label>
-                                <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="comment" class="form-label">Comment</label>
-                                <textarea class="form-control" id="comment" name="comment" rows="4" placeholder="Write your comment here..." required></textarea>
-                                <small class="form-text text-muted">Comments will be approved before appearing.</small>
-                            </div>
-
-                            <button type="submit" class="btn btn-primary">Post Comment</button>
-                        </form>
-                    </div>
-                </div>
-            </section>
-        </div>
-
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <!-- Author Card -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"> Author</h5>
-                </div>
-                <div class="card-body">
-                    <h6 class="mb-2">{{ blog.author.name }}</h6>
-                    <p class="text-muted small mb-3">{{ blog.author.email }}</p>
-                    <p class="mb-0">
-                        <a href="{% url 'home' %}" class="btn btn-sm btn-outline-primary w-100">View All Posts</a>
-                    </p>
-                </div>
-            </div>
-
-            <!-- Blog Info Card -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"> Post Info</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <strong class="d-block">Status</strong>
-                        <span class="badge bg-success">{{ blog.get_status_display }}</span>
-                    </div>
-                    <div class="mb-3">
-                        <strong class="d-block">Category</strong>
-                        {% if blog.category %}
-                            <span class="badge bg-info">{{ blog.category.name }}</span>
-                        {% else %}
-                            <span class="text-muted">Uncategorized</span>
-                        {% endif %}
-                    </div>
                     <div class="mb-3">
                         <strong class="d-block">Published</strong>
                         <small class="text-muted">{{ blog.published_at|date:"M d, Y" }}</small>

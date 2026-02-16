@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}SuperAdmin Registration - Blog{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:600px;margin:2rem auto;">
+    <!-- Registration Type Selector -->
+    <div style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <p style="margin: 0 0 1rem 0; font-weight: 600; color: #2c3e50; text-align: center;">Choose Registration Type</p>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a href="{% url 'register' %}?type=user" style="flex: 1; padding: 0.75rem 1.5rem; text-align: center; border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.3s; background: white; color: #2c3e50; border: 2px solid #2c3e50;">
+                👤 User Registration
+            </a>
+            <a href="{% url 'register' %}?type=superadmin" style="flex: 1; padding: 0.75rem 1.5rem; text-align: center; border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.3s; background: #1a4d2e; color: white; box-shadow: 0 4px 12px rgba(26, 77, 46, 0.3);">
+                🔐 SuperAdmin Registration
+            </a>
+        </div>
+    </div>
+
+    <div style="background: linear-gradient(135deg, #1a4d2e 0%, #2d7a4a 100%);border-radius:8px;padding:2rem;margin-bottom:2rem;box-shadow:0 8px 32px rgba(26, 77, 46, 0.15);animation:fadeInUp 0.6s ease-out;">
+        <h1 style="color:white;margin:0;font-family:'Times New Roman', Times, serif;">SuperAdmin Registration</h1>
+        <p style="color:rgba(255,255,255,0.9);margin:0.5rem 0 0 0;font-family:'Times New Roman', Times, serif;">Join our administrative team</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div style="padding:1rem;margin-bottom:1rem;border-radius:6px;border-left:4px solid {% if message.tags %}{% if 'error' in message.tags %}#e74c3c{% elif 'success' in message.tags %}#27ae60{% else %}#3498db{% endif %}{% endif %};background:{% if message.tags %}{% if 'error' in message.tags %}#fadbd8{% elif 'success' in message.tags %}#d5f4e6{% else %}#d6eaf8{% endif %}{% endif %};color:#2c3e50;font-family:'Times New Roman', Times, serif;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" style="background:white;padding:2rem;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+        {% csrf_token %}
+        
+        <div style="margin-bottom:1.5rem;">
+            <label style="display:block;margin-bottom:0.5rem;font-weight:600;color:#1a4d2e;font-family:'Times New Roman', Times, serif;">Full Name</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+                <div style="color:#e74c3c;font-size:0.9rem;margin-top:0.25rem;font-family:'Times New Roman', Times, serif;">{{ form.name.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div style="margin-bottom:1.5rem;">
+            <label style="display:block;margin-bottom:0.5rem;font-weight:600;color:#1a4d2e;font-family:'Times New Roman', Times, serif;">Email Address</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+                <div style="color:#e74c3c;font-size:0.9rem;margin-top:0.25rem;font-family:'Times New Roman', Times, serif;">{{ form.email.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div style="margin-bottom:1.5rem;">
+            <label style="display:block;margin-bottom:0.5rem;font-weight:600;color:#1a4d2e;font-family:'Times New Roman', Times, serif;">Company Name (Optional)</label>
+            {{ form.company }}
+            {% if form.company.errors %}
+                <div style="color:#e74c3c;font-size:0.9rem;margin-top:0.25rem;font-family:'Times New Roman', Times, serif;">{{ form.company.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div style="margin-bottom:1.5rem;">
+            <label style="display:block;margin-bottom:0.5rem;font-weight:600;color:#1a4d2e;font-family:'Times New Roman', Times, serif;">Admin Type</label>
+            {{ form.admin_type }}
+            <small style="color:#666;display:block;margin-top:0.25rem;font-family:'Times New Roman', Times, serif;">{{ form.admin_type.help_text }}</small>
+            {% if form.admin_type.errors %}
+                <div style="color:#e74c3c;font-size:0.9rem;margin-top:0.25rem;font-family:'Times New Roman', Times, serif;">{{ form.admin_type.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div style="margin-bottom:1.5rem;">
+            <label style="display:block;margin-bottom:0.5rem;font-weight:600;color:#1a4d2e;font-family:'Times New Roman', Times, serif;">Password</label>
+            {{ form.password }}
+            {% if form.password.errors %}
+                <div style="color:#e74c3c;font-size:0.9rem;margin-top:0.25rem;font-family:'Times New Roman', Times, serif;">{{ form.password.errors.0 }}</div>
+            {% endif %}
+            <small style="color:#666;display:block;margin-top:0.25rem;font-family:'Times New Roman', Times, serif;">Minimum 8 characters</small>
+        </div>
+
+        <div style="margin-bottom:1.5rem;">
+            <label style="display:block;margin-bottom:0.5rem;font-weight:600;color:#1a4d2e;font-family:'Times New Roman', Times, serif;">Confirm Password</label>
+            {{ form.confirm_password }}
+            {% if form.confirm_password.errors %}
+                <div style="color:#e74c3c;font-size:0.9rem;margin-top:0.25rem;font-family:'Times New Roman', Times, serif;">{{ form.confirm_password.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div style="margin-bottom:1.5rem;">
+            <label style="display:block;margin-bottom:0.5rem;font-weight:600;color:#1a4d2e;font-family:'Times New Roman', Times, serif;">Profile Picture (Optional)</label>
+            {{ form.profile_image }}
+            {% if form.profile_image.errors %}
+                <div style="color:#e74c3c;font-size:0.9rem;margin-top:0.25rem;font-family:'Times New Roman', Times, serif;">{{ form.profile_image.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        {% if form.non_field_errors %}
+            <div style="color:#e74c3c;padding:1rem;background:#fadbd8;border-radius:6px;margin-bottom:1rem;font-family:'Times New Roman', Times, serif;">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <button type="submit" style="width:100%;padding:0.75rem 1.5rem;background:linear-gradient(135deg, #1a4d2e 0%, #2d7a4a 100%);color:white;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:1rem;transition:all 0.3s;box-shadow:0 4px 12px rgba(26, 77, 46, 0.3);font-family:'Times New Roman', Times, serif;">Register as SuperAdmin</button>
+
+        <p style="text-align:center;margin-top:1.5rem;color:#666;font-family:'Times New Roman', Times, serif;">
+            Already have an account? <a href="{% url 'superadmin_login' %}" style="color:#1a4d2e;font-weight:600;text-decoration:none;">Login here</a>
+        </p>
+    </form>
+
+    <div style="text-align:center;margin-top:2rem;padding:1.5rem;background:#e8f5e9;border-radius:8px;font-family:'Times New Roman', Times, serif;">
+        <p style="color:#1a4d2e;margin:0;">Note: Your registration will be pending approval from an existing SuperAdmin.</p>
+    </div>
+</div>
+
+<style>
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-family: 'Times New Roman', Times, serif;
+        transition: all 0.3s;
+        background: #f9fbfa;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #1a4d2e;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(26, 77, 46, 0.1);
+    }
+
+    button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(26, 77, 46, 0.4) !important;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}SuperAdmin Login - Blog{% endblock %}
+
+{% block content %}
+<div class="container superadmin-container">
+    <div class="superadmin-card">
+        <div class="superadmin-header">
+            <h1>SuperAdmin Portal</h1>
+            <p class="superadmin-subtitle">Secure Administration Access</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" class="superadmin-form" novalidate>
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="Enter superadmin email" required class="superadmin-input">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter password" required class="superadmin-input">
+            </div>
+
+            <button type="submit" class="btn-superadmin">Login to SuperAdmin</button>
+        </form>
+
+        <div style="margin-top: 1.5rem; text-align: center; color: #666; font-size: 0.9rem;">
+            <p>Only authorized superadmins can access this portal.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .superadmin-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: calc(100vh - 200px);
+    }
+
+    .superadmin-card {
+        width: 100%;
+        max-width: 420px;
+        background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%);
+        padding: 2.5rem;
+        border-radius: 8px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .superadmin-header {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .superadmin-header h1 {
+        color: #1a4d2e;
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+
+    .superadmin-subtitle {
+        color: #666;
+        margin-top: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .superadmin-form .form-group {
+        margin-bottom: 1.2rem;
+    }
+
+    .superadmin-form label {
+        display: block;
+        color: #1a4d2e;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .superadmin-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #d0d0d0;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+        background: #fff;
+        color: #333;
+    }
+
+    .superadmin-input:focus {
+        outline: none;
+        border-color: #1a4d2e;
+        box-shadow: 0 0 0 3px rgba(26, 77, 46, 0.1);
+    }
+
+    .btn-superadmin {
+        width: 100%;
+        padding: 0.75rem;
+        background: linear-gradient(135deg, #1a4d2e 0%, #2d7a4a 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(26, 77, 46, 0.2);
+    }
+
+    .btn-superadmin:hover {
+        background: linear-gradient(135deg, #2d7a4a 0%, #1a4d2e 100%);
+        box-shadow: 0 6px 20px rgba(26, 77, 46, 0.3);
+    }
+
+    .alert {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 6px;
+    }
+
+    .alert-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+</style>
+{% endblock %}

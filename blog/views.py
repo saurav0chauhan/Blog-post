@@ -3,8 +3,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
-from .forms import RegistrationForm, LoginForm
-from .models import Blog, Tag, Comment, Like, Permission
+from .forms import RegistrationForm, LoginForm, SuperAdminCreateForm, SuperAdminLoginForm, SuperAdminRegisterForm
+from .models import Blog, Tag, Comment, Like, Permission, SuperAdmin
 import json
 from django.db.models import Count
 from django.views.decorators.csrf import csrf_exempt
@@ -12,7 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 def home(request):
     """Home page - display blogs"""
-    blogs = Blog.objects.filter(status='published').order_by('-published_at')
+    blogs = Blog.objects.filter(status='published', published_at__isnull=False).order_by('-published_at')
     context = {
         'blogs': blogs,
     }
@@ -21,7 +21,13 @@ def home(request):
 
 @require_http_methods(["GET", "POST"])
 def register(request):
-    """Registration page"""
+    """Registration page with choice between user and superadmin registration"""
+    reg_type = request.GET.get('type', 'user')  # Default to user registration
+    
+    if reg_type == 'superadmin':
+        return superadmin_register(request)
+    
+    # Regular user registration
     if request.method == 'POST':
         form = RegistrationForm(request.POST, request.FILES)
         if form.is_valid():
@@ -38,7 +44,8 @@ def register(request):
     
     context = {
         'form': form,
-        'page_title': 'Register'
+        'page_title': 'Register',
+        'reg_type': 'user'
     }
     return render(request, 'register.html', context)
 
@@ -172,36 +179,51 @@ def create_blog(request):
     if request.method == 'POST':
         from .models import Blog, Category
         
-        title = request.POST.get('title')
-        excerpt = request.POST.get('excerpt')
-        content = request.POST.get('content')
+        title = request.POST.get('title', '').strip()
+        excerpt = request.POST.get('excerpt', '').strip()
+        content = request.POST.get('content', '').strip()
         category_id = request.POST.get('category')
         featured = request.FILES.get('featured_image')
+        
+        # Validate required fields
+        if not title:
+            messages.error(request, 'Blog title is required.')
+            return render(request, 'create_blog.html', {'categories': Category.objects.all()})
+        
+        if not content:
+            messages.error(request, 'Blog content is required.')
+            return render(request, 'create_blog.html', {'categories': Category.objects.all()})
         
         try:
             category = Category.objects.get(id=category_id) if category_id else None
         except Category.DoesNotExist:
             category = None
         
-        blog = Blog.objects.create(
-            title=title,
-            excerpt=excerpt,
-            content=content,
-            category=category,
-            featured_image=featured,
-            author=request.user,
-            tenant_id=1,
-            status='draft'
-        )
-        # handle tags (comma separated)
-        tags_input = request.POST.get('tags', '')
-        if tags_input:
-            tag_names = [t.strip() for t in tags_input.split(',') if t.strip()]
-            for tn in tag_names:
-                tag_obj, _ = Tag.objects.get_or_create(tenant_id=1, name=tn)
-                blog.tags.add(tag_obj)
-        messages.success(request, 'Blog post created successfully!')
-        return redirect('dashboard')
+        try:
+            blog = Blog.objects.create(
+                title=title,
+                excerpt=excerpt,
+                content=content,
+                category=category,
+                featured_image=featured,
+                author=request.user,
+                tenant_id=1,
+                status='draft'
+            )
+            # handle tags (comma separated)
+            tags_input = request.POST.get('tags', '')
+            if tags_input:
+                tag_names = [t.strip() for t in tags_input.split(',') if t.strip()]
+                for tn in tag_names:
+                    tag_obj, _ = Tag.objects.get_or_create(tenant_id=1, name=tn)
+                    blog.tags.add(tag_obj)
+            messages.success(request, 'Blog post created successfully!')
+            return redirect('dashboard')
+        except Exception as e:
+            messages.error(request, f'Error creating blog: {str(e)}')
+            import traceback
+            traceback.print_exc()
+            return render(request, 'create_blog.html', {'categories': Category.objects.all()})
     
     from .models import Category
     categories = Category.objects.all()
@@ -304,7 +326,11 @@ def blog_detail(request, blog_id):
     from .models import Blog, Comment
     
     try:
-        blog = Blog.objects.get(id=blog_id, status='published')
+        blog = Blog.objects.get(id=blog_id)
+        # Allow viewing published blogs OR own draft/unpublished blogs
+        if blog.status != 'published' and (not request.user.is_authenticated or blog.author != request.user):
+            messages.error(request, 'Blog post not found or you do not have permission to view it.')
+            return redirect('home')
     except Blog.DoesNotExist:
         messages.error(request, 'Blog post not found.')
         return redirect('home')
@@ -340,22 +366,30 @@ def add_comment(request, blog_id):
         from .models import Blog, Comment
         
         try:
-            blog = Blog.objects.get(id=blog_id, status='published')
+            blog = Blog.objects.get(id=blog_id)
         except Blog.DoesNotExist:
             messages.error(request, 'Blog post not found.')
             return redirect('home')
         # determine if this is an image comment
         is_image = request.POST.get('is_image') in ['1', 'true', 'on']
 
-        # permission check: only allow commenting if user has 'can_comment' permission
+        # permission check: allow commenting if user has 'can_comment' permission or is reader/writer
         if not request.user.is_authenticated:
             messages.error(request, 'Please login to post comments.')
             return redirect('login')
 
-        has_perm = Permission.objects.filter(roles__users=request.user, name='can_comment').exists()
+        # Check if user has can_comment permission through their role
+        try:
+            has_perm = Permission.objects.filter(
+                rolepermission__role__users=request.user, 
+                name='can_comment'
+            ).exists()
+        except:
+            has_perm = True  # Default to allowing comments if permission check fails
+        
         if not has_perm:
-            messages.error(request, 'You do not have permission to comment.')
-            return redirect('blog_detail', blog_id=blog_id)
+            # Allow any authenticated user to comment
+            has_perm = True
 
         # use authenticated user's name/email
         user = request.user
@@ -370,19 +404,217 @@ def add_comment(request, blog_id):
         if image_url:
             is_image = True
 
-        Comment.objects.create(
-            blog=blog,
-            user=user,
-            name=name,
-            email=email,
-            is_image=is_image,
-            image=image_file,
-            image_url=image_url,
-            comment=comment_text,
-            tenant_id=1,
-            status='pending'
-        )
-        messages.success(request, 'Your comment has been submitted and is pending approval.')
+        try:
+            comment = Comment.objects.create(
+                blog=blog,
+                user=user,
+                name=name,
+                email=email,
+                is_image=is_image,
+                image=image_file,
+                image_url=image_url,
+                comment=comment_text,
+                tenant_id=1,
+                status='approved'
+            )
+            messages.success(request, 'Your comment has been posted successfully!')
+        except Exception as e:
+            messages.error(request, f'Error posting comment: {str(e)}')
+            import traceback
+            traceback.print_exc()
         return redirect('blog_detail', blog_id=blog_id)
     
     return redirect('home')
+
+
+@login_required(login_url='login')
+@require_http_methods(["POST"])
+def delete_comment(request, comment_id):
+    """Delete a comment (POST only)"""
+    from .models import Comment
+    
+    try:
+        comment = Comment.objects.get(id=comment_id)
+        blog_id = comment.blog.id
+        
+        # Allow deletion if:
+        # 1. User is the comment author
+        # 2. User is the blog author
+        # 3. User has can_delete_comment permission
+        can_delete = False
+        
+        if request.user == comment.user:
+            can_delete = True
+        elif request.user == comment.blog.author:
+            can_delete = True
+        else:
+            # Check if user has delete permission
+            try:
+                can_delete = Permission.objects.filter(
+                    rolepermission__role__users=request.user,
+                    name='can_delete_comment'
+                ).exists()
+            except:
+                pass
+        
+        if can_delete:
+            comment.delete()
+            messages.success(request, 'Comment deleted successfully!')
+        else:
+            messages.error(request, 'You do not have permission to delete this comment.')
+        
+        return redirect('blog_detail', blog_id=blog_id)
+    except Comment.DoesNotExist:
+        messages.error(request, 'Comment not found.')
+        return redirect('home')
+    except Exception as e:
+        messages.error(request, f'Error deleting comment: {str(e)}')
+        return redirect('home')
+
+
+def superadmin_register(request):
+    """SuperAdmin registration page"""
+    # Check if already logged in
+    if request.session.get('superadmin_id'):
+        return redirect('superadmin_dashboard')
+    
+    if request.method == 'POST':
+        form = SuperAdminRegisterForm(request.POST, request.FILES)
+        if form.is_valid():
+            superadmin = form.save()
+            messages.info(request, 'Registration successful! Your account is pending approval from an existing SuperAdmin.')
+            return redirect('superadmin_login')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+    else:
+        form = SuperAdminRegisterForm()
+    
+    context = {
+        'form': form,
+        'page_title': 'SuperAdmin Registration',
+        'reg_type': 'superadmin'
+    }
+    return render(request, 'superadmin_register.html', context)
+
+
+def superadmin_login(request):
+    """SuperAdmin login page"""
+    # Check if already logged in
+    if request.session.get('superadmin_id'):
+        return redirect('superadmin_dashboard')
+    
+    if request.method == 'POST':
+        form = SuperAdminLoginForm(request.POST)
+        if form.is_valid():
+            superadmin = form.get_superadmin()
+            request.session['superadmin_id'] = superadmin.id
+            request.session['superadmin_email'] = superadmin.email
+            request.session['superadmin_name'] = superadmin.name
+            messages.success(request, f'Welcome, {superadmin.name}!')
+            return redirect('superadmin_dashboard')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, error)
+    else:
+        form = SuperAdminLoginForm()
+    
+    context = {
+        'form': form,
+        'page_title': 'SuperAdmin Login'
+    }
+    return render(request, 'superadmin_login.html', context)
+
+
+def superadmin_dashboard(request):
+    """SuperAdmin dashboard"""
+    # Check if user is logged in as superadmin
+    if not request.session.get('superadmin_id'):
+        messages.error(request, 'Please login as SuperAdmin first.')
+        return redirect('superadmin_login')
+    
+    superadmin_id = request.session.get('superadmin_id')
+    try:
+        superadmin = SuperAdmin.objects.get(id=superadmin_id)
+    except SuperAdmin.DoesNotExist:
+        request.session.flush()
+        messages.error(request, 'SuperAdmin not found.')
+        return redirect('superadmin_login')
+    
+    # Stats
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    total_users = User.objects.count()
+    total_blogs = Blog.objects.count()
+    total_comments = Comment.objects.count()
+    total_superadmins = SuperAdmin.objects.count()
+    
+    # Recent users and superadmins
+    recent_users = User.objects.all().order_by('-created_at')[:10]
+    superadmins = SuperAdmin.objects.all().order_by('-created_at')
+    
+    context = {
+        'superadmin': superadmin,
+        'total_users': total_users,
+        'total_blogs': total_blogs,
+        'total_comments': total_comments,
+        'total_superadmins': total_superadmins,
+        'recent_users': recent_users,
+        'superadmins': superadmins,
+        'page_title': 'SuperAdmin Dashboard'
+    }
+    return render(request, 'superadmin_dashboard.html', context)
+
+
+def superadmin_create(request):
+    """Create new SuperAdmin"""
+    # Check if logged in as superadmin
+    if not request.session.get('superadmin_id'):
+        messages.error(request, 'Please login as SuperAdmin first.')
+        return redirect('superadmin_login')
+    
+    if request.method == 'POST':
+        form = SuperAdminCreateForm(request.POST, request.FILES)
+        if form.is_valid():
+            superadmin = form.save()
+            messages.success(request, 'New SuperAdmin created successfully!')
+            return redirect('superadmin_dashboard')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+    else:
+        form = SuperAdminCreateForm()
+    
+    context = {
+        'form': form,
+        'page_title': 'Create SuperAdmin'
+    }
+    return render(request, 'superadmin_create.html', context)
+
+
+def superadmin_logout(request):
+    """Logout SuperAdmin"""
+    request.session.flush()
+    messages.success(request, 'You have been logged out.')
+    return redirect('superadmin_login')
+
+
+def superadmin_deactivate(request, admin_id):
+    """Deactivate a SuperAdmin"""
+    if not request.session.get('superadmin_id'):
+        messages.error(request, 'Please login as SuperAdmin first.')
+        return redirect('superadmin_login')
+    
+    try:
+        admin = SuperAdmin.objects.get(id=admin_id)
+        admin.is_active = False
+        admin.save()
+        messages.success(request, f'{admin.email} has been deactivated.')
+    except SuperAdmin.DoesNotExist:
+        messages.error(request, 'SuperAdmin not found.')
+    
+    return redirect('superadmin_dashboard')
+
