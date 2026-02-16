@@ -1,0 +1,68 @@
+/* Dashboard styles: light cream background, dark purple and soft gold accents */
+:root{
+  --light-purple:#d5acf6; /* light background */
+  --dark-accent:#ac52dd;   /* dark accent for text/buttons */
+  --soft-gold:#c9a24a;
+  --muted:#6b6b6b;
+}
+body.dashboard-main{
+  background:var(--cream);
+  color:#222;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+}
+.top-navbar{
+  background:var(--light-purple);
+  color:var(--dark-accent);
+  padding:12px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.top-navbar .menu{display:flex;gap:18px;align-items:center}
+.top-navbar a{color:#171614;text-decoration:none;font-weight:600}
+.brand{display:flex;gap:12px;align-items:center}
+.brand img{height:36px;width:36px}
+.container-dashboard{max-width:1100px;margin:24px auto;padding:20px}
+.welcome-card{background:#fff;border-radius:10px;padding:28px;box-shadow:0 8px 24px rgba(18,18,18,0.06);display:flex;justify-content:space-between;align-items:center}
+.welcome-card h1{font-family:Playfair Display, Georgia, serif;margin:0;color:var(--dark-accent)}
+.welcome-card p{margin:6px 0 0;color:var(--muted)}
+.actions{display:flex;gap:12px}
+.btn-gold{background:var(--soft-gold);color:#fff;padding:10px 14px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
+.btn-dark{background:var(--dark-accent);color:#fff;padding:10px 14px;border-radius:8px;border:none;cursor:pointer}
+.section-title{margin-top:28px;margin-bottom:12px;font-family:Playfair Display, serif;color:var(--dark-accent)}
+.categories-row{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px}
+.category-card{min-width:200px;background:#fff;border-radius:12px;padding:16px;box-shadow:0 6px 18px rgba(18,18,18,0.06);display:flex;align-items:center;gap:12px}
+.category-icon{height:42px;width:42px;border-radius:10px;background:rgba(91,22,127,0.06);display:flex;align-items:center;justify-content:center;color:var(--dark-accent);font-weight:700}
+.category-name{font-weight:700}
+.badge{background:var(--dark-accent);color:#fff;padding:6px 9px;border-radius:999px;font-size:0.85rem}
+.quick-actions{display:flex;gap:12px;margin-top:18px}
+.spacious{padding:28px}
+
+/* Posts table styling with black header/content for better visual contrast */
+.posts-table thead th{
+  color:#000;
+  font-weight:700;
+  border-bottom:1px solid rgba(0,0,0,0.08);
+}
+.posts-table tbody td{
+  color:#000;
+  padding:0.75rem 0.5rem;
+}
+.posts-table tr:hover{
+  background:rgba(0,0,0,0.01);
+}
+
+/* animated subtle gradient background for dashboard */
+.dashboard-main {
+  background: linear-gradient(120deg, rgba(246,240,251,1) 0%, rgba(255,250,244,1) 50%, rgba(246,240,251,1) 100%);
+  background-size: 200% 200%;
+  animation: gradientShift 12s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* simple scrollbar style */
+.categories-row::-webkit-scrollbar{height:8px}
+.categories-row::-webkit-scrollbar-thumb{background:rgba(91,22,127,0.18);border-radius:8px}

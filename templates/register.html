@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - Blog{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="nav-back">
+        <a href="{% url 'login' %}">Already have an account? Login here</a>
+    </div>
+    
+    <div style="max-width: 500px; margin: 0 auto;">
+        <div class="card">
+            <h2 style="margin-top: 0;">Create Your Account</h2>
+                    <form method="POST" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Name Field -->
+                        <div class="mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">Full Name</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="alert alert-danger alert-sm mt-2" role="alert">
+                                    {{ form.name.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Email Field -->
+                        <div class="form-group">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">Email Address</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="alert alert-danger alert-sm mt-2" role="alert">
+                                    {{ form.email.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Password Field -->
+                        <div class="mb-3">
+                            <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
+                            {{ form.password }}
+                            <small class="form-text text-muted d-block mt-2">
+                                Password must be at least 8 characters long.
+                            </small>
+                            {% if form.password.errors %}
+                                <div class="alert alert-danger alert-sm mt-2" role="alert">
+                                    {{ form.password.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Confirm Password Field -->
+                        <div class="mb-3">
+                            <label for="{{ form.confirm_password.id_for_label }}" class="form-label">Confirm Password</label>
+                            {{ form.confirm_password }}
+                            {% if form.confirm_password.errors %}
+                                <div class="alert alert-danger alert-sm mt-2" role="alert">
+                                    {{ form.confirm_password.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Non-field Errors -->
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger" role="alert">
+                                {% for error in form.non_field_errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <!-- Role Field -->
+                        <div class="form-group">
+                            <label for="id_role" class="form-label">Register As</label>
+                            {{ form.role }}
+                            {% if form.role.errors %}
+                                <div class="alert alert-danger alert-sm mt-2" role="alert">
+                                    {{ form.role.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Profile Picture -->
+                        <div class="form-group">
+                            <label for="id_profile_picture" class="form-label">Profile Picture (optional)</label>
+                            {{ form.profile_picture }}
+                            {% if form.profile_picture.errors %}
+                                <div class="alert alert-danger alert-sm mt-2" role="alert">
+                                    {{ form.profile_picture.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary w-100 py-2 mb-3">
+                            Register Account
+                        </button>
+                    </form>
+
+                    <div class="nav-back" style="margin-top: 2rem;">
+                        <a href="{% url 'login' %}">Go to Login</a>
+                    </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

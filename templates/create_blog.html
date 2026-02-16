@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Blog - Blog{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="nav-back">
+        <a href="{% url 'dashboard' %}">Back to Dashboard</a>
+    </div>
+
+    <div style="max-width: 700px; margin: 0 auto;">
+        <div class="card">
+            <h2 style="margin-top: 0;">Write a New Blog Post</h2>
+            <p class="text-muted mb-2">Share your thoughts with the world</p>
+
+            <form method="POST" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+                
+                <!-- Title -->
+                <div class="form-group">
+                    <label for="title">Blog Title</label>
+                    <input type="text" id="title" name="title" placeholder="Enter blog title" required>
+                </div>
+
+                <!-- Excerpt -->
+                <div class="form-group">
+                    <label for="excerpt">Excerpt (Optional)</label>
+                    <textarea id="excerpt" name="excerpt" rows="2" placeholder="Write a short summary"></textarea>
+                </div>
+
+                <!-- Content -->
+                <div class="form-group">
+                    <label for="content">Blog Content</label>
+                    <textarea id="content" name="content" rows="10" placeholder="Write your blog content here..." required></textarea>
+                </div>
+
+                <!-- Category -->
+                <div class="form-group">
+                    <label for="category">Category (Optional)</label>
+                    <select id="category" name="category">
+                        <option value="">-- Select Category --</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Featured Image -->
+                <div class="form-group">
+                    <label for="featured_image">Featured Image (optional)</label>
+                    <input type="file" id="featured_image" name="featured_image" accept="image/*">
+                </div>
+
+                <!-- Tags -->
+                <div class="form-group">
+                    <label for="tags">Tags (comma separated)</label>
+                    <input type="text" id="tags" name="tags" placeholder="e.g. django,python,tutorial">
+                </div>
+
+                <!-- Buttons -->
+                <div class="button-group" style="margin-top: 2rem;">
+                    <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Publish Blog</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

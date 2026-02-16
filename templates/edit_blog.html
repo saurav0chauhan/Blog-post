@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Blog - Blog{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="nav-back">
+        <a href="{% url 'dashboard' %}">Back to Dashboard</a>
+    </div>
+
+    <div style="max-width: 700px; margin: 0 auto;">
+        <div class="card">
+            <h2 style="margin-top: 0;">Edit Blog Post</h2>
+            <p class="text-muted mb-2">Update your blog post</p>
+
+            <form method="POST" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+                
+                        <!-- Title -->
+                <div class="form-group">
+                    <label for="title">Blog Title</label>
+                    <input type="text" id="title" name="title" value="{{ blog.title }}" placeholder="Enter blog title" required>
+                </div>
+
+                <!-- Excerpt -->
+                <div class="form-group">
+                    <label for="excerpt">Excerpt (Optional)</label>
+                    <textarea id="excerpt" name="excerpt" rows="2" placeholder="Write a short summary">{{ blog.excerpt }}</textarea>
+                </div>
+
+                <!-- Content -->
+                <div class="form-group">
+                    <label for="content">Blog Content</label>
+                    <textarea id="content" name="content" rows="10" placeholder="Write your blog content here..." required>{{ blog.content }}</textarea>
+                </div>
+
+                <!-- Category -->
+                <div class="form-group">
+                    <label for="category">Category (Optional)</label>
+                    <select id="category" name="category">
+                        <option value="">-- Select Category --</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}" {% if blog.category.id == category.id %}selected{% endif %}>{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Featured Image -->
+                <div class="form-group">
+                    <label for="featured_image">Replace Featured Image</label>
+                    <input type="file" id="featured_image" name="featured_image" accept="image/*">
+                    {% if blog.featured_image %}
+                        <div style="margin-top:8px;">
+                            <label><input type="checkbox" name="remove_image" value="1"> Remove current featured image</label>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Tags -->
+                <div class="form-group">
+                    <label for="tags">Tags (comma separated)</label>
+                    <input type="text" id="tags" name="tags" placeholder="e.g. django,python" value="{% for t in blog.tags.all %}{% if not forloop.first %}, {% endif %}{{ t.name }}{% endfor %}">
+                </div>
+
+                <!-- Status Info -->
+                <div style="background-color: #e7f3ff; padding: 1rem; border-radius: 4px; margin: 1rem 0;">
+                    <strong>Current Status:</strong><br>
+                    {% if blog.status == 'published' %}
+                        <span>Published on {{ blog.published_at|date:"M d, Y" }}</span>
+                    {% else %}
+                        <span>Draft</span>
+                    {% endif %}
+                </div>
+
+                <!-- Buttons -->
+                <div class="button-group" style="margin-top: 2rem;">
+                    <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Update Blog</button>
+                </div>
+            </form>
+
+            <hr>
+
+            <div style="padding-top: 1rem;">
+                <p><strong>Created:</strong> {{ blog.created_at|date:"M d, Y H:i" }}</p>
+                <p><strong>Last Updated:</strong> {{ blog.updated_at|date:"M d, Y H:i" }}</p>
+                <p><a href="{% url 'blog_detail' blog.id %}" class="btn btn-primary btn-small">View Blog</a>
+                <a href="{% url 'delete_blog' blog.id %}" class="btn btn-danger btn-small" onclick="return confirm('Are you sure?');">Delete Blog</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

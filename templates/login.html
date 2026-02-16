@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - Blog{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="nav-back">
+        <a href="{% url 'register' %}">Don't have an account? Register here</a>
+    </div>
+    
+    <div style="max-width: 500px; margin: 0 auto;">
+        <div class="card">
+            <h2 style="margin-top: 0;">Login to Your Account</h2>
+                    <form method="POST" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Email Field -->
+                        <div class="mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">Email Address</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="alert alert-danger alert-sm mt-2" role="alert">
+                                    {{ form.email.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Password Field -->
+                        <div class="mb-3">
+                            <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
+                            {{ form.password }}
+                            {% if form.password.errors %}
+                                <div class="alert alert-danger alert-sm mt-2" role="alert">
+                                    {{ form.password.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Non-field Errors -->
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger" role="alert">
+                                {% for error in form.non_field_errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary w-100 py-2 mb-3">
+                            Login
+                        </button>
+                    </form>
+
+                    <div class="nav-back" style="margin-top: 2rem;">
+                        <a href="{% url 'register' %}">Go to Register</a>
+                    </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

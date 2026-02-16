@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Search Results - Blog{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Search results for "{{ query }}"</h2>
+
+    <h3>Blogs</h3>
+    {% if blogs %}
+        <ul>
+        {% for b in blogs %}
+            <li><a href="{% url 'blog_detail' b.id %}">{{ b.title }}</a> — <small class="text-muted">by {{ b.author.name }}</small></li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-muted">No matching blog posts.</p>
+    {% endif %}
+
+    <h3>Users</h3>
+    {% if users %}
+        <ul>
+        {% for u in users %}
+            <li><a href="{% url 'profile' u.id %}">{{ u.name }}</a> — <small>{{ u.email }}</small></li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-muted">No matching users.</p>
+    {% endif %}
+</div>
+{% endblock %}
